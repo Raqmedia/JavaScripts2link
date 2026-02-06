@@ -1,0 +1,300 @@
+        /* 
+         * SCOPED CSS FOR ENGLEZZTRKDON COMPONENT
+         * All classes are prefixed with 'etd-' to prevent conflicts with Blogger themes.
+         * Styles are wrapped in the #englezztrkdon-wrapper ID selector.
+              #englezztrkdon-wrapper {
+            --etd-primary: #2563eb;
+            --etd-primary-hover: #1d4ed8;
+            --etd-bg: #ffffff;
+            --etd-surface: #f8fafc;
+            --etd-text: #1e293b;
+            --etd-text-light: #64748b;
+            --etd-border: #e2e8f0;
+            --etd-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --etd-radius: 12px;
+            font-family: system-ui, -apple-system, sans-serif;
+            color: var(--etd-text);
+            line-height: 1.5;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        #englezztrkdon-wrapper * {
+            box-sizing: border-box;
+        }
+
+        /* Header Section */
+        .etd-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .etd-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--etd-text);
+        }
+
+        /* Track List */
+        .etd-track-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Individual Track Card */
+        .etd-track-card {
+            background: var(--etd-bg);
+            border: 1px solid var(--etd-border);
+            border-radius: var(--etd-radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .etd-track-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--etd-shadow);
+            border-color: var(--etd-primary);
+        }
+
+        /* Track Info Area */
+        .etd-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .etd-track-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .etd-track-meta {
+            font-size: 0.85rem;
+            color: var(--etd-text-light);
+        }
+
+        /* Buttons Area */
+        .etd-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Preview Button */
+        .etd-btn-preview {
+            background-color: var(--etd-surface);
+            color: var(--etd-text);
+            border: 1px solid var(--etd-border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .etd-btn-preview:hover {
+            background-color: var(--etd-primary);
+            color: white;
+            border-color: var(--etd-primary);
+        }
+
+        .etd-btn-preview svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Download Button Override (Targeting the specific class requested) */
+        #englezztrkdon-wrapper a.button.safeL {
+            text-decoration: none;
+            background-color: var(--etd-primary);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+
+        #englezztrkdon-wrapper a.button.safeL:hover {
+            background-color: var(--etd-primary-hover);
+        }
+
+        /* Floating Audio Player */
+        .etd-float-player {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150%); /* Hidden by default */
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 16px 20px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 9999;
+            border: 1px solid var(--etd-border);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .etd-float-player.etd-active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Player Controls */
+        .etd-player-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .etd-btn-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--etd-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .etd-btn-circle:hover {
+            transform: scale(1.1);
+        }
+
+        .etd-btn-close {
+            background: transparent;
+            color: var(--etd-text-light);
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .etd-btn-close:hover {
+            color: var(--etd-text);
+        }
+
+        /* Progress Bar */
+        .etd-progress-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0; /* Prevent flex overflow */
+        }
+
+        .etd-current-track-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .etd-progress-bar-wrapper {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .etd-progress-fill {
+            height: 100%;
+            background: var(--etd-primary);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .etd-time {
+            font-size: 0.75rem;
+            color: var(--etd-text-light);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            .etd-track-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .etd-actions {
+                justify-content: space-between;
+                margin-top: 8px;
+            }
+
+            .etd-float-player {
+                padding: 12px;
+                border-radius: 16px;
+                flex-direction: column;
+                align-items: stretch;
+                bottom: 10px;
+            }
+
+            .etd-player-controls {
+                justify-content: space-between;
+                width: 100%;
+            }
+            
+            .etd-progress-container {
+                width: 100%;
+            }
+        }
+
+        /* Footer Copyright */
+        .etd-footer-copyright {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--etd-text-light);
+            border-top: 1px solid var(--etd-border);
+            padding-top: 15px;
+        }
+
+        .etd-footer-copyright a {
+            color: var(--etd-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .etd-footer-copyright a:hover {
+            text-decoration: underline;
+        }
+
+        /* Playing State Indication */
+        .etd-track-card.is-playing .etd-track-name {
+            color: var(--etd-primary);
+        }

@@ -148,5 +148,4 @@
                     // For this snippet, click-to-seek is sufficient and robust.
                 }
             });
-
-        })();
+        })();    

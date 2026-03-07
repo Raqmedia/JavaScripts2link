@@ -1,9 +1,8 @@
   .englezzreadingquiz-container {
     font-family: 'Nunito', sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: transparent;
     min-height: 100%;
   }
-  .englezzreadingquiz-title { font-family: 'Playfair Display', serif; }
   .englezzreadingquiz-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);

@@ -1,5 +1,4 @@
 <!-- ENGLEZZ QUIZ SYSTEM - START THEME CODE -->
-  // Global State
   // Global Configuration & State
   const defaultConfig = {
     quiz_title: 'Quiz', primary_color: '#f97316', background_color: '#1a1a2e',

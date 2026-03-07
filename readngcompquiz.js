@@ -1,7 +1,6 @@
 <!-- ============================================ -->
 <!-- ENGLEZZ READING QUIZ - CORE JAVASCRIPT (DO NOT EDIT) -->
 <!-- ============================================ -->
-<script>
 const englezzreadingquiz = {
     currentDifficulty: null,
     currentActivity: 1,
@@ -433,4 +432,3 @@ const englezzreadingquiz = {
 document.addEventListener('DOMContentLoaded', () => {
     englezzreadingquiz.init();
 });
-</script>

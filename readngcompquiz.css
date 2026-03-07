@@ -1,6 +1,8 @@
+<!-- ENGLEZZ QUIZ SYSTEM - START THEME CODE -->
+<style>
   .englezzreadingquiz-container {
     font-family: 'Nunito', sans-serif;
-    background: transparent;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     min-height: 100%;
   }
   .englezzreadingquiz-title { font-family: 'Playfair Display', serif; }
@@ -47,3 +49,5 @@
   }
   .englezzreadingquiz-ripple:active::before { animation: englezzreadingquiz-ripple-effect 0.6s ease-out; }
   @keyframes englezzreadingquiz-ripple-effect { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 300px; height: 300px; opacity: 0; } }
+</style>
+<!-- ENGLEZZ QUIZ SYSTEM - END THEME CODE -->

@@ -1,278 +1,421 @@
-<!-- ENGLEZZ QUIZ SYSTEM - START THEME CODE -->
-<script>
-  // Global Configuration & State
-  const defaultConfig = {
-    quiz_title: 'Quiz', primary_color: '#f97316', background_color: '#1a1a2e',
-    text_color: '#374151', surface_color: '#ffffff', accent_color: '#ea580c',
-    google_adsense_client: '', google_adsense_slot1: '', google_adsense_slot2: '', google_adsense_slot3: ''
-  };
-  let config = { ...defaultConfig };
-  let selectedDifficulty = null;
-  let answers = { activity1: {}, activity2: {}, activity3: {} };
-  let currentActivity = 'reading';
-  let questionsData = {}; // To be populated by Post Code
+            init: function() {
+                document.querySelectorAll('[data-difficulty]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.currentDifficulty = e.target.dataset.difficulty;
+                        document.getElementById('englezzreadingquiz-current-difficulty').textContent = 
+                            this.currentDifficulty.charAt(0).toUpperCase() + this.currentDifficulty.slice(1);
+                        document.getElementById('englezzreadingquiz-current-difficulty').className = 
+                            `englezzreadingquiz-difficulty-badge ${this.currentDifficulty}`;
+                        
+                        document.getElementById('englezzreadingquiz-passage-content').innerHTML = this.passages[this.currentDifficulty];
+                        document.getElementById('englezzreadingquiz-passage-meta').textContent = this.passageMeta[this.currentDifficulty];
+                        
+                        document.getElementById('englezzreadingquiz-header').classList.remove('englezzreadingquiz-hidden');
+                        document.getElementById('englezzreadingquiz-difficulty-screen').classList.add('englezzreadingquiz-hidden');
+                        document.getElementById('englezzreadingquiz-passage-section').classList.remove('englezzreadingquiz-hidden');
+                        
+                        this.startTimer();
+                        this.showActivity(1);
+                        this.renderActivity1();
+                        this.renderActivity2();
+                        this.renderActivity3();
+                    });
+                });
+                
+                document.getElementById('englezzreadingquiz-act1-next').addEventListener('click', () => this.showActivity(2));
+                document.getElementById('englezzreadingquiz-act2-prev').addEventListener('click', () => this.showActivity(1));
+                document.getElementById('englezzreadingquiz-act2-next').addEventListener('click', () => this.showActivity(3));
+                document.getElementById('englezzreadingquiz-act3-prev').addEventListener('click', () => this.showActivity(2));
+                document.getElementById('englezzreadingquiz-act3-finish').addEventListener('click', () => this.showCompletion());
+                
+                document.getElementById('englezzreadingquiz-act1-prev').addEventListener('click', () => {
+                    document.getElementById('englezzreadingquiz-activity1').classList.remove('active');
+                    document.getElementById('englezzreadingquiz-passage-section').scrollIntoView({behavior: 'smooth'});
+                });
+            },
+            
+            startTimer: function() {
+                this.secondsElapsed = 0;
+                this.timerInterval = setInterval(() => {
+                    this.secondsElapsed++;
+                    this.updateTimerDisplay();
+                }, 1000);
+            },
+            
+            stopTimer: function() {
+                clearInterval(this.timerInterval);
+            },
+            
+            updateTimerDisplay: function() {
+                const minutes = Math.floor(this.secondsElapsed / 60);
+                const seconds = this.secondsElapsed % 60;
+                const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                const timerEl = document.getElementById('englezzreadingquiz-timer');
+                timerEl.textContent = display;
+                
+                if (this.secondsElapsed > 1200) {
+                    timerEl.classList.add('englezzreadingquiz-timer-warning');
+                } else {
+                    timerEl.classList.remove('englezzreadingquiz-timer-warning');
+                }
+            },
+            
+            updateScoreDisplay: function() {
+                document.getElementById('englezzreadingquiz-score').textContent = this.score;
+                document.getElementById('englezzreadingquiz-progress-text').textContent = `${this.answeredCount}/${this.totalQuestions}`;
+            },
+            
+            showActivity: function(activityNum) {
+                document.querySelectorAll('.englezzreadingquiz-activity').forEach(el => {
+                    el.classList.remove('active');
+                });
+                document.getElementById(`englezzreadingquiz-activity${activityNum}`).classList.add('active');
+                this.currentActivity = activityNum;
+                document.getElementById(`englezzreadingquiz-activity${activityNum}`).scrollIntoView({behavior: 'smooth'});
+            },
+            
+            renderActivity1: function() {
+                const container = document.getElementById('englezzreadingquiz-activity1-questions');
+                container.innerHTML = '';
+                const questions = this.questions.activity1[this.currentDifficulty];
+                
+                questions.forEach((q, index) => {
+                    const qDiv = document.createElement('div');
+                    qDiv.className = 'englezzreadingquiz-question';
+                    qDiv.id = `question-container-${q.id}`;
+                    qDiv.innerHTML = `
+                        <div class="englezzreadingquiz-question-counter">Question ${index + 1} of 10</div>
+                        <div class="englezzreadingquiz-question-text">${index + 1}. ${q.question}</div>
+                        <textarea class="englezzreadingquiz-input englezzreadingquiz-textarea" 
+                                  id="answer-${q.id}" 
+                                  placeholder="Type your detailed answer here..."
+                                  aria-label="Answer for question ${index + 1}"></textarea>
+                        <button class="englezzreadingquiz-btn" id="btn-${q.id}" onclick="englezzreadingquiz.checkDetailedAnswer('${q.id}')">
+                            Submit Answer
+                        </button>
+                        <div id="feedback-${q.id}" class="englezzreadingquiz-feedback" role="status"></div>
+                    `;
+                    container.appendChild(qDiv);
+                });
+            },
+            
+            checkDetailedAnswer: function(questionId) {
+                if (this.questionState[questionId]) return;
 
-  // Initialization Function called by Post Code
-  function englezzInitQuiz(title, textHtml, data, adSettings = {}) {
-    questionsData = data;
-    config = { ...config, ...adSettings };
-    
-    // Set Title
-    const titleEl = document.getElementById('englezzreadingquiz-main-title');
-    if(titleEl) titleEl.textContent = title;
+                const userAnswer = document.getElementById(`answer-${questionId}`).value.toLowerCase().trim();
+                const question = this.findQuestion(questionId);
+                if (!question || !userAnswer) {
+                    this.showFeedback(questionId, "Please write your answer first! 🤔", "incorrect");
+                    return;
+                }
+                
+                const hasKeywords = question.keywords.some(keyword => 
+                    userAnswer.includes(keyword.toLowerCase())
+                );
+                
+                const btn = document.getElementById(`btn-${questionId}`);
+                const container = document.getElementById(`question-container-${questionId}`);
+                
+                if (hasKeywords) {
+                    this.showFeedback(questionId, question.feedback.correct, "correct");
+                    this.announceFeedback(question.feedback.correct);
+                    this.incrementScore();
+                    btn.textContent = "Answered Correctly ✅";
+                    btn.disabled = true;
+                    btn.classList.add('englezzreadingquiz-btn-success');
+                } else {
+                    this.showFeedback(questionId, question.feedback.incorrect, "incorrect");
+                    this.announceFeedback(question.feedback.incorrect);
+                    btn.textContent = "Try Again later 🔁";
+                    btn.disabled = true;
+                    btn.classList.add('englezzreadingquiz-btn-secondary');
+                }
+                
+                container.classList.add('englezzreadingquiz-answer');
+                this.questionState[questionId] = true;
+                this.answeredCount++;
+                this.updateScoreDisplay();
+                this.showMotivation();
+            },
+            
+            renderActivity2: function() {
+                const container = document.getElementById('englezzreadingquiz-activity2-questions');
+                container.innerHTML = '';
+                const questions = this.questions.activity2[this.currentDifficulty];
+                
+                questions.forEach((q, index) => {
+                    const qDiv = document.createElement('div');
+                    qDiv.className = 'englezzreadingquiz-question';
+                    qDiv.id = `question-container-${q.id}`;
+                    qDiv.innerHTML = `
+                        <div class="englezzreadingquiz-question-counter">Question ${index + 1} of 10</div>
+                        <div class="englezzreadingquiz-question-text">${index + 1}. ${q.question}</div>
+                        <div class="englezzreadingquiz-options">
+                            <label class="englezzreadingquiz-option">
+                                <input type="radio" name="${q.id}" value="true"> True
+                            </label>
+                            <label class="englezzreadingquiz-option">
+                                <input type="radio" name="${q.id}" value="false"> False
+                            </label>
+                        </div>
+                        <button class="englezzreadingquiz-btn" id="btn-${q.id}" onclick="englezzreadingquiz.checkTrueFalse('${q.id}', ${q.answer})">
+                            Submit Answer
+                        </button>
+                        <div id="feedback-${q.id}" class="englezzreadingquiz-feedback" role="status"></div>
+                    `;
+                    container.appendChild(qDiv);
+                });
+            },
+            
+            checkTrueFalse: function(questionId, correctAnswer) {
+                if (this.questionState[questionId]) return;
 
-    // Inject Reading Text (Main + References)
-    const mainContainer = document.getElementById('englezzreadingquiz-reading-text-container');
-    if(mainContainer) mainContainer.innerHTML = textHtml;
-    
-    ['a1', 'a2', 'a3'].forEach(act => {
-      const refContainer = document.getElementById(`englezzreadingquiz-reading-ref-container-${act}`);
-      if(refContainer) refContainer.innerHTML = textHtml;
-    });
+                const selected = document.querySelector(`input[name="${questionId}"]:checked`);
+                const question = this.findQuestion(questionId);
+                
+                if (!selected) {
+                    this.showFeedback(questionId, "Please select True or False first! ✅❌", "incorrect");
+                    return;
+                }
+                
+                const userAnswer = selected.value === 'true';
+                const btn = document.getElementById(`btn-${questionId}`);
+                const container = document.getElementById(`question-container-${questionId}`);
 
-    // Reset State
-    englezzreadingquizRestart();
-  }
+                if (userAnswer === correctAnswer) {
+                    this.showFeedback(questionId, question.feedback.correct, "correct");
+                    this.announceFeedback(question.feedback.correct);
+                    this.incrementScore();
+                    btn.textContent = "Correct! ✅";
+                    btn.disabled = true;
+                    btn.classList.add('englezzreadingquiz-btn-success');
+                } else {
+                    this.showFeedback(questionId, question.feedback.incorrect, "incorrect");
+                    this.announceFeedback(question.feedback.incorrect);
+                    btn.textContent = "Incorrect ❌";
+                    btn.disabled = true;
+                    btn.classList.add('englezzreadingquiz-btn-secondary');
+                }
+                
+                container.classList.add('englezzreadingquiz-answer');
+                this.questionState[questionId] = true;
+                this.answeredCount++;
+                this.updateScoreDisplay();
+                this.showMotivation();
+            },
+            
+            renderActivity3: function() {
+                const container = document.getElementById('englezzreadingquiz-activity3-questions');
+                container.innerHTML = '';
+                const questions = this.questions.activity3[this.currentDifficulty];
+                
+                questions.forEach((q, index) => {
+                    const qDiv = document.createElement('div');
+                    qDiv.className = 'englezzreadingquiz-question';
+                    qDiv.id = `question-container-${q.id}`;
+                    let optionsHTML = '';
+                    q.options.forEach((opt, optIndex) => {
+                        optionsHTML += `
+                            <label class="englezzreadingquiz-option">
+                                <input type="radio" name="${q.id}" value="${optIndex}"> ${opt}
+                            </label>
+                        `;
+                    });
+                    
+                    qDiv.innerHTML = `
+                        <div class="englezzreadingquiz-question-counter">Question ${index + 1} of 10</div>
+                        <div class="englezzreadingquiz-question-text">${index + 1}. ${q.question}</div>
+                        <div class="englezzreadingquiz-options">
+                            ${optionsHTML}
+                        </div>
+                        <button class="englezzreadingquiz-btn" id="btn-${q.id}" onclick="englezzreadingquiz.checkMCQ('${q.id}', ${q.correct})">
+                            Submit Answer
+                        </button>
+                        <div id="feedback-${q.id}" class="englezzreadingquiz-feedback" role="status"></div>
+                    `;
+                    container.appendChild(qDiv);
+                });
+            },
+            
+            checkMCQ: function(questionId, correctIndex) {
+                if (this.questionState[questionId]) return;
 
-  // Core Logic Functions
-  function englezzreadingquizSelectDifficulty(difficulty) {
-    selectedDifficulty = difficulty;
-    ['easy', 'medium', 'hard'].forEach(d => {
-      const btn = document.getElementById(`englezzreadingquiz-${d}-btn`);
-      if(btn) btn.classList.remove('englezzreadingquiz-selected');
-    });
-    document.getElementById(`englezzreadingquiz-${difficulty}-btn`).classList.add('englezzreadingquiz-selected');
-    document.getElementById('englezzreadingquiz-start-btn').disabled = false;
-  }
+                const selected = document.querySelector(`input[name="${questionId}"]:checked`);
+                const question = this.findQuestion(questionId);
+                
+                if (!selected) {
+                    this.showFeedback(questionId, "Please select an option first! 🔍", "incorrect");
+                    return;
+                }
+                
+                const userAnswer = parseInt(selected.value);
+                const btn = document.getElementById(`btn-${questionId}`);
+                const container = document.getElementById(`question-container-${questionId}`);
 
-  function englezzreadingquizStartQuiz() {
-    if (!selectedDifficulty) return;
-    document.getElementById('englezzreadingquiz-difficulty-screen').classList.add('hidden');
-    document.getElementById('englezzreadingquiz-quiz-screen').classList.remove('hidden');
-    
-    document.getElementById('englezzreadingquiz-difficulty-display-a1').textContent = selectedDifficulty;
-    document.getElementById('englezzreadingquiz-difficulty-display-a2').textContent = selectedDifficulty;
-    document.getElementById('englezzreadingquiz-difficulty-display-a3').textContent = selectedDifficulty;
-    
-    englezzreadingquizRenderActivity1();
-    englezzreadingquizRenderActivity2();
-    englezzreadingquizRenderActivity3();
-    englezzreadingquizShowSection('reading');
-  }
-
-  function englezzreadingquizShowSection(section) {
-    ['reading', 'activity1', 'activity2', 'activity3'].forEach(s => {
-      document.getElementById(`englezzreadingquiz-section-${s}`).classList.add('hidden');
-    });
-    document.getElementById(`englezzreadingquiz-section-${section}`).classList.remove('hidden');
-    currentActivity = section;
-
-    if (section === 'activity1') englezzreadingquizLoadAdsense('slot1');
-    else if (section === 'activity2') englezzreadingquizLoadAdsense('slot2');
-    else if (section === 'activity3') englezzreadingquizLoadAdsense('slot3');
-  }
-
-  function englezzreadingquizToggleReadingRef(activity) {
-    const container = document.getElementById(`englezzreadingquiz-reading-ref-container-${activity}`);
-    const icon = document.getElementById(`englezzreadingquiz-ref-toggle-icon-${activity}`);
-    const text = document.getElementById(`englezzreadingquiz-ref-toggle-text-${activity}`);
-    if (container.classList.contains('hidden')) {
-      container.classList.remove('hidden'); icon.textContent = '👀'; text.textContent = 'Hide Reading Reference';
-    } else {
-      container.classList.add('hidden'); icon.textContent = '👁️'; text.textContent = 'Show Reading Reference';
-    }
-  }
-
-  function englezzreadingquizProgressToActivity() {
-    if (currentActivity === 'reading') {
-      englezzreadingquizShowSection('activity1');
-      document.getElementById('englezzreadingquiz-progress-a1').classList.add('englezzreadingquiz-active');
-    } else if (currentActivity === 'activity1') {
-      englezzreadingquizShowSection('activity2');
-      document.getElementById('englezzreadingquiz-progress-a1').classList.remove('englezzreadingquiz-active');
-      document.getElementById('englezzreadingquiz-progress-a1').classList.add('englezzreadingquiz-completed');
-      document.getElementById('englezzreadingquiz-progress-a2').classList.add('englezzreadingquiz-active');
-    } else if (currentActivity === 'activity2') {
-      englezzreadingquizShowSection('activity3');
-      document.getElementById('englezzreadingquiz-progress-a2').classList.remove('englezzreadingquiz-active');
-      document.getElementById('englezzreadingquiz-progress-a2').classList.add('englezzreadingquiz-completed');
-      document.getElementById('englezzreadingquiz-progress-a3').classList.add('englezzreadingquiz-active');
-    }
-  }
-
-  function englezzreadingquizLoadAdsense(slotName) {
-    const slotMap = { 'slot1': config.google_adsense_slot1, 'slot2': config.google_adsense_slot2, 'slot3': config.google_adsense_slot3 };
-    const slotId = slotMap[slotName];
-    const clientId = config.google_adsense_client;
-    const container = document.getElementById(`englezzreadingquiz-adsense-${slotName}`);
-    if (!slotId || !clientId || !container) return;
-    container.innerHTML = '';
-    const adIns = document.createElement('ins');
-    adIns.className = 'adsbygoogle'; adIns.style.display = 'block';
-    adIns.setAttribute('data-ad-client', clientId); adIns.setAttribute('data-ad-slot', slotId);
-    adIns.setAttribute('data-ad-format', 'auto'); adIns.setAttribute('data-full-width-responsive', 'true');
-    container.appendChild(adIns);
-    try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.error(e); }
-  }
-
-  function englezzreadingquizRenderActivity1() {
-    const container = document.getElementById('englezzreadingquiz-activity1-questions');
-    const questions = questionsData[selectedDifficulty].activity1;
-    container.innerHTML = questions.map((q, index) => `
-      <div class="mb-6 p-5 bg-gray-50 rounded-xl border-2 border-gray-200">
-        <div class="flex items-start gap-3 mb-3">
-          <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">${index + 1}</span>
-          <p class="text-gray-800 font-semibold">${q.question}</p>
-        </div>
-        <textarea id="englezzreadingquiz-a1-q${q.id}" class="englezzreadingquiz-textarea w-full p-4 border-2 border-gray-300 rounded-xl resize-none focus:outline-none" rows="3" placeholder="Write your answer here..." oninput="englezzreadingquizUpdateAnswer('activity1', ${q.id}, this.value)">${answers.activity1[q.id] || ''}</textarea>
-        <button onclick="englezzreadingquizCheckActivity1Answer(${q.id})" class="englezzreadingquiz-btn englezzreadingquiz-ripple mt-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-2 px-6 rounded-lg"> Check Answer 🔍 </button>
-        <div id="englezzreadingquiz-feedback-a1-${q.id}" class="mt-3"></div>
-      </div>
-    `).join('');
-  }
-
-  function englezzreadingquizRenderActivity2() {
-    const container = document.getElementById('englezzreadingquiz-activity2-questions');
-    const questions = questionsData[selectedDifficulty].activity2;
-    container.innerHTML = questions.map((q, index) => `
-      <div class="mb-4 p-5 bg-gray-50 rounded-xl border-2 border-gray-200">
-        <div class="flex items-start gap-3 mb-4">
-          <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">${index + 1}</span>
-          <p class="text-gray-800">${q.statement}</p>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="englezzreadingquizSelectTrueFalse(${q.id}, true)" class="englezzreadingquiz-option englezzreadingquiz-ripple flex-1 py-3 px-6 border-2 border-gray-300 rounded-xl font-semibold bg-white hover:bg-green-50" id="englezzreadingquiz-a2-true-${q.id}"> ✓ True </button>
-          <button onclick="englezzreadingquizSelectTrueFalse(${q.id}, false)" class="englezzreadingquiz-option englezzreadingquiz-ripple flex-1 py-3 px-6 border-2 border-gray-300 rounded-xl font-semibold bg-white hover:bg-red-50" id="englezzreadingquiz-a2-false-${q.id}"> ✗ False </button>
-        </div>
-        <div id="englezzreadingquiz-feedback-a2-${q.id}" class="mt-3"></div>
-      </div>
-    `).join('');
-  }
-
-  function englezzreadingquizRenderActivity3() {
-    const container = document.getElementById('englezzreadingquiz-activity3-questions');
-    const questions = questionsData[selectedDifficulty].activity3;
-    container.innerHTML = questions.map((q, index) => `
-      <div class="mb-6 p-5 bg-gray-50 rounded-xl border-2 border-gray-200">
-        <div class="flex items-start gap-3 mb-4">
-          <span class="bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">${index + 1}</span>
-          <p class="text-gray-800 font-semibold">${q.question}</p>
-        </div>
-        <div class="space-y-2">
-          ${q.options.map((opt, optIndex) => `
-            <button onclick="englezzreadingquizSelectMCQ(${q.id}, ${optIndex})" class="englezzreadingquiz-option englezzreadingquiz-ripple w-full text-left py-3 px-4 border-2 border-gray-300 rounded-xl bg-white" id="englezzreadingquiz-a3-opt-${q.id}-${optIndex}">
-              <span class="font-semibold text-orange-500 mr-2">${String.fromCharCode(65 + optIndex)}.</span> ${opt}
-            </button>
-          `).join('')}
-        </div>
-        <div id="englezzreadingquiz-feedback-a3-${q.id}" class="mt-3"></div>
-      </div>
-    `).join('');
-  }
-
-  function englezzreadingquizUpdateAnswer(activity, questionId, value) { answers[activity][questionId] = value; }
-
-  function englezzreadingquizCheckActivity1Answer(questionId) {
-    const question = questionsData[selectedDifficulty].activity1.find(q => q.id === questionId);
-    const userAnswer = answers.activity1[questionId] || '';
-    const feedbackEl = document.getElementById(`englezzreadingquiz-feedback-a1-${questionId}`);
-    if (!userAnswer.trim()) { feedbackEl.innerHTML = `<div class="englezzreadingquiz-feedback bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-r-lg"><p class="font-semibold text-yellow-800">⚠️ Please write your answer first!</p></div>`; return; }
-    
-    const keywords = question.answer.toLowerCase().split(' ').filter(w => w.length > 4);
-    const userWords = userAnswer.toLowerCase().split(' ');
-    const matchCount = keywords.filter(k => userWords.some(w => w.includes(k))).length;
-    const matchPercent = keywords.length > 0 ? (matchCount / keywords.length) * 100 : 0;
-    
-    let feedback, bgColor, borderColor, icon;
-    if (matchPercent >= 50 || userAnswer.length > 30) { feedback = "Great effort! 🌟 Here's the model answer for comparison:"; bgColor = 'bg-green-100'; borderColor = 'border-green-500'; icon = '✅'; }
-    else { feedback = "Good try! 💪 Review the model answer to improve:"; bgColor = 'bg-blue-100'; borderColor = 'border-blue-500'; icon = '📚'; }
-    feedbackEl.innerHTML = `<div class="englezzreadingquiz-feedback ${bgColor} border-l-4 ${borderColor} p-4 rounded-r-lg"><p class="font-semibold text-gray-800 mb-2">${icon} ${feedback}</p><p class="text-gray-700 bg-white p-3 rounded-lg"><strong>Model Answer:</strong> ${question.answer}</p></div>`;
-  }
-
-  function englezzreadingquizSelectTrueFalse(questionId, selected) {
-    const question = questionsData[selectedDifficulty].activity2.find(q => q.id === questionId);
-    const isCorrect = selected === question.answer;
-    answers.activity2[questionId] = { selected, isCorrect };
-    
-    const trueBtn = document.getElementById(`englezzreadingquiz-a2-true-${questionId}`);
-    const falseBtn = document.getElementById(`englezzreadingquiz-a2-false-${questionId}`);
-    trueBtn.classList.remove('englezzreadingquiz-correct', 'englezzreadingquiz-incorrect');
-    falseBtn.classList.remove('englezzreadingquiz-correct', 'englezzreadingquiz-incorrect');
-    
-    if (selected === true) { trueBtn.classList.add(isCorrect ? 'englezzreadingquiz-correct' : 'englezzreadingquiz-incorrect'); if (!isCorrect) falseBtn.classList.add('englezzreadingquiz-correct'); }
-    else { falseBtn.classList.add(isCorrect ? 'englezzreadingquiz-correct' : 'englezzreadingquiz-incorrect'); if (!isCorrect) trueBtn.classList.add('englezzreadingquiz-correct'); }
-    
-    const feedbackEl = document.getElementById(`englezzreadingquiz-feedback-a2-${questionId}`);
-    feedbackEl.innerHTML = isCorrect ? 
-      `<div class="englezzreadingquiz-feedback bg-green-100 border-l-4 border-green-500 p-3 rounded-r-lg"><p class="font-semibold text-green-800">🎉 Excellent! That's correct!</p></div>` :
-      `<div class="englezzreadingquiz-feedback bg-red-100 border-l-4 border-red-500 p-3 rounded-r-lg"><p class="font-semibold text-red-800">❌ Not quite! The correct answer is <strong>${question.answer ? 'True' : 'False'}</strong>. Keep learning! 📖</p></div>`;
-  }
-
-  function englezzreadingquizSelectMCQ(questionId, selectedIndex) {
-    const question = questionsData[selectedDifficulty].activity3.find(q => q.id === questionId);
-    const isCorrect = selectedIndex === question.answer;
-    answers.activity3[questionId] = { selected: selectedIndex, isCorrect };
-    
-    question.options.forEach((_, idx) => { document.getElementById(`englezzreadingquiz-a3-opt-${questionId}-${idx}`).classList.remove('englezzreadingquiz-correct', 'englezzreadingquiz-incorrect'); });
-    
-    const selectedBtn = document.getElementById(`englezzreadingquiz-a3-opt-${questionId}-${selectedIndex}`);
-    const correctBtn = document.getElementById(`englezzreadingquiz-a3-opt-${questionId}-${question.answer}`);
-    
-    if (isCorrect) selectedBtn.classList.add('englezzreadingquiz-correct');
-    else { selectedBtn.classList.add('englezzreadingquiz-incorrect'); correctBtn.classList.add('englezzreadingquiz-correct'); }
-    
-    const feedbackEl = document.getElementById(`englezzreadingquiz-feedback-a3-${questionId}`);
-    feedbackEl.innerHTML = isCorrect ? 
-      `<div class="englezzreadingquiz-feedback bg-green-100 border-l-4 border-green-500 p-3 rounded-r-lg"><p class="font-semibold text-green-800">🎯 Perfect! You got it right!</p></div>` :
-      `<div class="englezzreadingquiz-feedback bg-red-100 border-l-4 border-red-500 p-3 rounded-r-lg"><p class="font-semibold text-red-800">❌ Not quite! The correct answer is <strong>${String.fromCharCode(65 + question.answer)}. ${question.options[question.answer]}</strong>. Don't give up! 💪</p></div>`;
-  }
-
-  function englezzreadingquizViewResults() {
-    document.getElementById('englezzreadingquiz-quiz-screen').classList.add('hidden');
-    document.getElementById('englezzreadingquiz-results-screen').classList.remove('hidden');
-    
-    let correct = 0, incorrect = 0, unanswered = 0;
-    const a1Questions = questionsData[selectedDifficulty].activity1.length;
-    let a1Checked = 0; Object.keys(answers.activity1).forEach(key => { if (answers.activity1[key]) a1Checked++; });
-    correct += Math.round(a1Checked * 0.5); unanswered += (a1Questions - a1Checked);
-    
-    questionsData[selectedDifficulty].activity2.forEach(q => { if (answers.activity2[q.id]) { if (answers.activity2[q.id].isCorrect) correct++; else incorrect++; } else unanswered++; });
-    questionsData[selectedDifficulty].activity3.forEach(q => { if (answers.activity3[q.id]) { if (answers.activity3[q.id].isCorrect) correct++; else incorrect++; } else unanswered++; });
-    
-    const totalAnswerable = 12;
-    const percentage = Math.round((correct / totalAnswerable) * 100);
-    
-    document.getElementById('englezzreadingquiz-correct-count').textContent = correct;
-    document.getElementById('englezzreadingquiz-incorrect-count').textContent = incorrect;
-    document.getElementById('englezzreadingquiz-unanswered-count').textContent = unanswered;
-    document.getElementById('englezzreadingquiz-final-score').textContent = `${percentage}%`;
-    
-    const circle = document.getElementById('englezzreadingquiz-score-circle');
-    const circumference = 2 * Math.PI * 65;
-    const offset = circumference - (percentage / 100) * circumference;
-    setTimeout(() => { circle.style.strokeDashoffset = offset; }, 100);
-    
-    let message, emoji;
-    if (percentage >= 90) { message = "Outstanding performance! You have excellent reading comprehension skills! 🌟"; emoji = "🏆"; }
-    else if (percentage >= 70) { message = "Great job! You understood the passage well. Keep up the good work! 📚"; emoji = "🎉"; }
-    else if (percentage >= 50) { message = "Good effort! Review the passage and try again to improve your score. 💪"; emoji = "📖"; }
-    else { message = "Keep practicing! Read the passage carefully and try again. You've got this! 🌱"; emoji = "💡"; }
-    
-    document.getElementById('englezzreadingquiz-results-message').innerHTML = `<div class="text-4xl mb-3">${emoji}</div><p class="text-gray-700 text-lg">${message}</p><p class="text-sm text-gray-500 mt-2">Difficulty: <span class="font-semibold capitalize">${selectedDifficulty}</span></p>`;
-  }
-
-  function englezzreadingquizRestart() {
-    selectedDifficulty = null;
-    answers = { activity1: {}, activity2: {}, activity3: {} };
-    ['easy', 'medium', 'hard'].forEach(d => { document.getElementById(`englezzreadingquiz-${d}-btn`).classList.remove('englezzreadingquiz-selected'); });
-    document.getElementById('englezzreadingquiz-start-btn').disabled = true;
-    document.getElementById('englezzreadingquiz-score-circle').style.strokeDashoffset = 283;
-    document.getElementById('englezzreadingquiz-progress-a1').classList.remove('englezzreadingquiz-active', 'englezzreadingquiz-completed');
-    document.getElementById('englezzreadingquiz-progress-a2').classList.remove('englezzreadingquiz-active', 'englezzreadingquiz-completed');
-    document.getElementById('englezzreadingquiz-progress-a3').classList.remove('englezzreadingquiz-active', 'englezzreadingquiz-completed');
-    document.getElementById('englezzreadingquiz-results-screen').classList.add('hidden');
-    document.getElementById('englezzreadingquiz-quiz-screen').classList.add('hidden');
-    document.getElementById('englezzreadingquiz-difficulty-screen').classList.remove('hidden');
-  }
-</script>
-<!-- ENGLEZZ QUIZ SYSTEM - END THEME CODE -->
+                if (userAnswer === correctIndex) {
+                    this.showFeedback(questionId, question.feedback.correct, "correct");
+                    this.announceFeedback(question.feedback.correct);
+                    this.incrementScore();
+                    btn.textContent = "Correct! ✅";
+                    btn.disabled = true;
+                    btn.classList.add('englezzreadingquiz-btn-success');
+                } else {
+                    this.showFeedback(questionId, question.feedback.incorrect, "incorrect");
+                    this.announceFeedback(question.feedback.incorrect);
+                    btn.textContent = "Incorrect ❌";
+                    btn.disabled = true;
+                    btn.classList.add('englezzreadingquiz-btn-secondary');
+                }
+                
+                container.classList.add('englezzreadingquiz-answer');
+                this.questionState[questionId] = true;
+                this.answeredCount++;
+                this.updateScoreDisplay();
+                this.showMotivation();
+            },
+            
+            findQuestion: function(questionId) {
+                for (let activity in this.questions) {
+                    for (let difficulty in this.questions[activity]) {
+                        const found = this.questions[activity][difficulty].find(q => q.id === questionId);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            },
+            
+            incrementScore: function() {
+                this.score++;
+                this.updateScoreDisplay();
+            },
+            
+            showFeedback: function(questionId, message, type) {
+                const feedbackEl = document.getElementById(`feedback-${questionId}`);
+                feedbackEl.textContent = message;
+                feedbackEl.className = `englezzreadingquiz-feedback ${type}`;
+            },
+            
+            announceFeedback: function(message) {
+                const announcer = document.getElementById('englezzreadingquiz-aria-feedback');
+                announcer.textContent = message;
+                setTimeout(() => { announcer.textContent = ''; }, 1000);
+            },
+            
+            showMotivation: function() {
+                const messages = this.motivationalMessages;
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                console.log("Motivation:", randomMsg);
+            },
+            
+            showCompletion: function() {
+                this.stopTimer();
+                document.querySelectorAll('.englezzreadingquiz-activity').forEach(el => {
+                    el.classList.remove('active');
+                });
+                document.getElementById('englezzreadingquiz-completion').classList.add('active');
+                
+                document.getElementById('englezzreadingquiz-final-score').textContent = this.score;
+                
+                const minutes = Math.floor(this.secondsElapsed / 60);
+                const seconds = this.secondsElapsed % 60;
+                document.getElementById('englezzreadingquiz-final-time').textContent = 
+                    `${minutes}m ${seconds}s`;
+                
+                let message = "";
+                const percentage = (this.score / this.totalQuestions) * 100;
+                
+                if (percentage >= 90) {
+                    message = "Outstanding Performance! 🌟 You've mastered the text with exceptional comprehension. Your analytical skills are top-tier!";
+                } else if (percentage >= 70) {
+                    message = "Great Job! 🎬 You've demonstrated strong understanding of the material. Keep refining your skills!";
+                } else if (percentage >= 50) {
+                    message = "Good Effort! 📚 You've completed the quiz. Reviewing the passage again might help clarify some concepts.";
+                } else {
+                    message = "Keep Learning! 💡 Reading comprehension takes practice. Try reviewing the passage and attempting the quiz again.";
+                }
+                
+                document.getElementById('englezzreadingquiz-completion-message').textContent = message;
+                document.getElementById('englezzreadingquiz-completion').scrollIntoView({behavior: 'smooth'});
+            },
+            
+            resetQuiz: function() {
+                if(confirm("Are you sure you want to reset the quiz? All progress will be lost.")) {
+                    this.stopTimer();
+                    this.score = 0;
+                    this.answeredCount = 0;
+                    this.secondsElapsed = 0;
+                    this.questionState = {};
+                    this.currentDifficulty = null;
+                    this.currentActivity = 1;
+                    
+                    document.getElementById('englezzreadingquiz-score').textContent = '0';
+                    document.getElementById('englezzreadingquiz-progress-text').textContent = '0/30';
+                    document.getElementById('englezzreadingquiz-timer').textContent = '00:00';
+                    document.getElementById('englezzreadingquiz-timer').classList.remove('englezzreadingquiz-timer-warning');
+                    
+                    document.querySelectorAll('.englezzreadingquiz-activity').forEach(el => el.classList.remove('active'));
+                    document.getElementById('englezzreadingquiz-passage-section').classList.add('englezzreadingquiz-hidden');
+                    document.getElementById('englezzreadingquiz-header').classList.add('englezzreadingquiz-hidden');
+                    document.getElementById('englezzreadingquiz-difficulty-screen').classList.remove('englezzreadingquiz-hidden');
+                    
+                    document.querySelectorAll('.englezzreadingquiz-input, .englezzreadingquiz-textarea').forEach(el => el.value = '');
+                    document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+                    document.querySelectorAll('.englezzreadingquiz-feedback').forEach(el => {
+                        el.textContent = '';
+                        el.className = 'englezzreadingquiz-feedback';
+                        el.style.display = 'none';
+                    });
+                    document.querySelectorAll('.englezzreadingquiz-btn').forEach(btn => {
+                        if(btn.id.startsWith('btn-')) {
+                            btn.disabled = false;
+                            btn.textContent = 'Submit Answer';
+                            btn.classList.remove('englezzreadingquiz-btn-success', 'englezzreadingquiz-btn-secondary');
+                        }
+                    });
+                    document.querySelectorAll('.englezzreadingquiz-question').forEach(q => q.classList.remove('englezzreadingquiz-answer'));
+                    
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                }
+            },
+            
+            restartQuiz: function() {
+                this.stopTimer();
+                this.score = 0;
+                this.answeredCount = 0;
+                this.secondsElapsed = 0;
+                this.questionState = {};
+                this.currentActivity = 1;
+                
+                document.getElementById('englezzreadingquiz-score').textContent = '0';
+                document.getElementById('englezzreadingquiz-progress-text').textContent = '0/30';
+                document.getElementById('englezzreadingquiz-timer').textContent = '00:00';
+                document.getElementById('englezzreadingquiz-timer').classList.remove('englezzreadingquiz-timer-warning');
+                
+                document.querySelectorAll('.englezzreadingquiz-activity').forEach(el => el.classList.remove('active'));
+                document.getElementById('englezzreadingquiz-passage-section').classList.remove('englezzreadingquiz-hidden');
+                
+                document.querySelectorAll('.englezzreadingquiz-input, .englezzreadingquiz-textarea').forEach(el => el.value = '');
+                document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+                document.querySelectorAll('.englezzreadingquiz-feedback').forEach(el => {
+                    el.textContent = '';
+                    el.className = 'englezzreadingquiz-feedback';
+                    el.style.display = 'none';
+                });
+                document.querySelectorAll('.englezzreadingquiz-btn').forEach(btn => {
+                    if(btn.id.startsWith('btn-')) {
+                        btn.disabled = false;
+                        btn.textContent = 'Submit Answer';
+                        btn.classList.remove('englezzreadingquiz-btn-success', 'englezzreadingquiz-btn-secondary');
+                    }
+                });
+                document.querySelectorAll('.englezzreadingquiz-question').forEach(q => q.classList.remove('englezzreadingquiz-answer'));
+                
+                this.startTimer();
+                this.showActivity(1);
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        };
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            englezzreadingquiz.init();
+        });

@@ -160,3 +160,12 @@ function enterClickedWordCap(exNum,x){
  document.getElementById("ex"+exNum+"AnsBox"+x).value=txt
  clickedWord=""
 }
+
+    function showAnswer() {
+      document.getElementById("correctAnswer").style.display = "block";
+    }
+    
+    function resetForm() {
+      document.getElementById("quizForm").reset();
+      document.getElementById("correctAnswer").style.display = "none";
+    }

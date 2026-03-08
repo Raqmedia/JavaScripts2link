@@ -1,97 +1,46 @@
-    .englezzreadingquiz-container {
-      font-family: 'Nunito', sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      min-height: 100%;
-    }
+<!-- ENGLEZZ QUIZ SYSTEM - THEME CODE START -->
+    /* Core Container & Fonts */
+    .englezzreadingquiz-container { font-family: 'Nunito', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100%; }
     .englezzreadingquiz-title { font-family: 'Playfair Display', serif; }
-    .englezzreadingquiz-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-    }
-    .englezzreadingquiz-btn {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    .englezzreadingquiz-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    }
+    
+    /* Cards & Buttons */
+    .englezzreadingquiz-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); }
+    .englezzreadingquiz-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+    .englezzreadingquiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
     .englezzreadingquiz-btn:active { transform: translateY(0); }
-    .englezzreadingquiz-btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-      transform: translateX(-100%);
-      transition: transform 0.5s;
-    }
+    .englezzreadingquiz-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent); transform: translateX(-100%); transition: transform 0.5s; }
     .englezzreadingquiz-btn:hover::after { transform: translateX(100%); }
-    .englezzreadingquiz-difficulty-btn {
-      border: 2px solid transparent;
-      transition: all 0.3s ease;
-    }
-    .englezzreadingquiz-difficulty-btn.englezzreadingquiz-selected {
-      border-color: #f97316;
-      box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
-    }
+    
+    /* Difficulty Selection */
+    .englezzreadingquiz-difficulty-btn { border: 2px solid transparent; transition: all 0.3s ease; }
+    .englezzreadingquiz-difficulty-btn.englezzreadingquiz-selected { border-color: #f97316; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
+    
+    /* Feedback & Options */
     .englezzreadingquiz-feedback { animation: englezzreadingquiz-fadeSlide 0.4s ease-out; }
-    @keyframes englezzreadingquiz-fadeSlide {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .englezzreadingquiz-option {
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    .englezzreadingquiz-option:hover {
-      background: #fff7ed;
-      border-color: #f97316;
-    }
-    .englezzreadingquiz-option.englezzreadingquiz-correct {
-      background: #dcfce7 !important;
-      border-color: #22c55e !important;
-    }
-    .englezzreadingquiz-option.englezzreadingquiz-incorrect {
-      background: #fee2e2 !important;
-      border-color: #ef4444 !important;
-    }
+    @keyframes englezzreadingquiz-fadeSlide { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .englezzreadingquiz-option { transition: all 0.2s ease; cursor: pointer; }
+    .englezzreadingquiz-option:hover { background: #fff7ed; border-color: #f97316; }
+    .englezzreadingquiz-option.englezzreadingquiz-correct { background: #dcfce7 !important; border-color: #22c55e !important; }
+    .englezzreadingquiz-option.englezzreadingquiz-incorrect { background: #fee2e2 !important; border-color: #ef4444 !important; }
+    
+    /* Text & Inputs */
     .englezzreadingquiz-reading-text { line-height: 1.9; text-align: justify; }
-    .englezzreadingquiz-textarea {
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .englezzreadingquiz-textarea:focus {
-      border-color: #f97316;
-      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
-    }
+    .englezzreadingquiz-textarea { transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+    .englezzreadingquiz-textarea:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
+    
+    /* Animations */
     .englezzreadingquiz-film-icon { animation: englezzreadingquiz-float 3s ease-in-out infinite; }
-    @keyframes englezzreadingquiz-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    .englezzreadingquiz-score-circle {
-      stroke-dasharray: 283;
-      stroke-dashoffset: 283;
-      transition: stroke-dashoffset 1s ease-out;
-    }
+    @keyframes englezzreadingquiz-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .englezzreadingquiz-score-circle { stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 1s ease-out; }
+    
+    /* Progress Steps */
     .englezzreadingquiz-step-indicator { transition: all 0.3s ease; }
     .englezzreadingquiz-step-indicator.englezzreadingquiz-active { background: #f97316; color: white; }
     .englezzreadingquiz-step-indicator.englezzreadingquiz-completed { background: #22c55e; color: white; }
+    
+    /* Ripple Effect */
     .englezzreadingquiz-ripple { position: relative; overflow: hidden; }
-    .englezzreadingquiz-ripple::before {
-      content: '';
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 0; height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.5);
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
+    .englezzreadingquiz-ripple::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.5); transform: translate(-50%, -50%); pointer-events: none; }
     .englezzreadingquiz-ripple:active::before { animation: englezzreadingquiz-ripple-effect 0.6s ease-out; }
-    @keyframes englezzreadingquiz-ripple-effect {
-      0% { width: 0; height: 0; opacity: 1; }
-      100% { width: 300px; height: 300px; opacity: 0; }
-    }
+    @keyframes englezzreadingquiz-ripple-effect { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 300px; height: 300px; opacity: 0; } }
+<!-- ENGLEZZ QUIZ SYSTEM - THEME CODE END -->

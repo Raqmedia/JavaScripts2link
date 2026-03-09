@@ -1,9 +1,4 @@
 <!-- ENGLEZZ QUIZ SYSTEM - THEME CODE START -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
 // THE LOGIC ENGINE
 window.EnglezzQuizLoader = {
     data: {},
@@ -401,5 +396,5 @@ window.EnglezzQuizLoader = {
         window.scrollTo(0, 0);
     }
 };
-</script>
+
 <!-- ENGLEZZ QUIZ SYSTEM - THEME CODE END -->
